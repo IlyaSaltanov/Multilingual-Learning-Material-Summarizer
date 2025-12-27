@@ -144,12 +144,15 @@ jobs:
     - name: Run performance tests
       run: |
         python -c '
+    - name: Run performance tests
+      run: >
+        python -c '
 import sys
 sys.path.insert(0, "src")
 from summarizer import TextSummarizer
 import time
 
-text = """Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals."""
+text = \"\"\"Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals.\"\"\"
 
 summarizer = TextSummarizer()
 
@@ -158,6 +161,22 @@ start = time.time()
 for _ in range(10):
     summary = summarizer.summarize_extractive(text, "en", 30)
 end = time.time()
+
+print(f"Time for 10 summaries: {end-start:.2f} seconds")
+print(f"Average time per summary: {(end-start)/10:.3f} seconds")
+print(f"Original length: {len(text.split())} words")
+print(f"Summary length: {len(summary.split())} words")
+print(f"Reduction: {100 - (len(summary.split()) / len(text.split()) * 100):.1f}%")
+        '
+
+    - name: Save performance metrics
+      run: |
+        echo "PERFORMANCE_METRICS=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+        mkdir -p metrics
+        echo "Last run: $(date)" > metrics/performance.txt
+        echo "Branch: ${{ github.ref }}" >> metrics/performance.txt
+        echo "Commit: ${{ github.sha }}" >> metrics/performance.txt
+
 
 print(f"Time for 10 summaries: {end-start:.2f} seconds")
 print(f"Average time per summary: {(end-start)/10:.3f} seconds")
