@@ -143,28 +143,28 @@ jobs:
     
     - name: Run performance tests
       run: |
-        python -c "
+        python -c '
 import sys
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 from summarizer import TextSummarizer
 import time
 
-text = '''Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals.'''
+text = """Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals."""
 
 summarizer = TextSummarizer()
 
 # Тестируем производительность
 start = time.time()
 for _ in range(10):
-    summary = summarizer.summarize_extractive(text, 'en', 30)
+    summary = summarizer.summarize_extractive(text, "en", 30)
 end = time.time()
 
-print(f'Time for 10 summaries: {end-start:.2f} seconds')
-print(f'Average time per summary: {(end-start)/10:.3f} seconds')
-print(f'Original length: {len(text.split())} words')
-print(f'Summary length: {len(summary.split())} words')
-print(f'Reduction: {100 - (len(summary.split()) / len(text.split()) * 100):.1f}%')
-        "
+print(f"Time for 10 summaries: {end-start:.2f} seconds")
+print(f"Average time per summary: {(end-start)/10:.3f} seconds")
+print(f"Original length: {len(text.split())} words")
+print(f"Summary length: {len(summary.split())} words")
+print(f"Reduction: {100 - (len(summary.split()) / len(text.split()) * 100):.1f}%")
+        '
     
     - name: Save performance metrics
       run: |
@@ -178,7 +178,7 @@ print(f'Reduction: {100 - (len(summary.split()) / len(text.split()) * 100):.1f}%
     name: Generate Daily Report
     runs-on: ubuntu-latest
     needs: [quality-check, test]
-    if: ${{ github.event_name == 'schedule' || github.event.inputs.generate_report == 'true' }}
+    if: ${{ github.event_name == 'schedule' || github.event_inputs.generate_report == 'true' }}
     
     steps:
     - name: Checkout code
@@ -197,9 +197,9 @@ print(f'Reduction: {100 - (len(summary.split()) / len(text.split()) * 100):.1f}%
     
     - name: Generate daily statistics
       run: |
-        python -c "
+        python -c '
 import sys
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 import json
 import pandas as pd
 from datetime import datetime
@@ -210,8 +210,8 @@ try:
     
     # Тестовые данные
     samples = [
-        {'text': 'Artificial intelligence is transforming industries worldwide. AI applications are diverse.', 'lang': 'en'},
-        {'text': 'Machine learning allows computers to learn from data. This is important technology.', 'lang': 'en'},
+        {"text": "Artificial intelligence is transforming industries worldwide. AI applications are diverse.", "lang": "en"},
+        {"text": "Machine learning allows computers to learn from data. This is important technology.", "lang": "en"},
     ]
     
     summarizer = TextSummarizer()
@@ -219,52 +219,52 @@ try:
     
     results = []
     for sample in samples:
-        summary = summarizer.summarize_extractive(sample['text'], sample['lang'], 30)
-        stats = summarizer.calculate_statistics(sample['text'], summary)
-        detected = detector.detect_language(sample['text'])
+        summary = summarizer.summarize_extractive(sample["text"], sample["lang"], 30)
+        stats = summarizer.calculate_statistics(sample["text"], summary)
+        detected = detector.detect_language(sample["text"])
         
         results.append({
-            'language': sample['lang'],
-            'detected_language': detected['language'],
-            'detected_confidence': detected['confidence'],
-            'original_length': stats['original_length'],
-            'summary_length': stats['summary_length'],
-            'reduction_percent': stats['reduction_percent'],
-            'timestamp': datetime.now().isoformat()
+            "language": sample["lang"],
+            "detected_language": detected["language"],
+            "detected_confidence": detected["confidence"],
+            "original_length": stats["original_length"],
+            "summary_length": stats["summary_length"],
+            "reduction_percent": stats["reduction_percent"],
+            "timestamp": datetime.now().isoformat()
         })
     
     # Сохраняем результаты
     df = pd.DataFrame(results)
-    df.to_csv('daily_report.csv', index=False)
+    df.to_csv("daily_report.csv", index=False)
     
-    print('Daily report generated:')
+    print("Daily report generated:")
     print(df.to_string())
     
     # Генерируем README с результатами
-    with open('DAILY_REPORT.md', 'w') as f:
-        f.write('# Daily Summary Report\n\n')
-        f.write(f'Generated: {datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")}\n\n')
-        f.write('## Performance Metrics\n\n')
-        f.write('| Language | Detected | Confidence | Original | Summary | Reduction |\n')
-        f.write('|----------|----------|------------|----------|---------|-----------|\n')
+    with open("DAILY_REPORT.md", "w") as f:
+        f.write("# Daily Summary Report\n\n")
+        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write("## Performance Metrics\n\n")
+        f.write("| Language | Detected | Confidence | Original | Summary | Reduction |\n")
+        f.write("|----------|----------|------------|----------|---------|-----------|\n")
         for _, row in df.iterrows():
-            f.write(f'| {row[\"language\"]} | {row[\"detected_language\"]} | {row[\"detected_confidence\"]:.2f} | ')
-            f.write(f'{row[\"original_length\"]} | {row[\"summary_length\"]} | {row[\"reduction_percent\"]:.1f}% |\n')
+            f.write(f"| {row['language']} | {row['detected_language']} | {row['detected_confidence']:.2f} | ")
+            f.write(f"{row['original_length']} | {row['summary_length']} | {row['reduction_percent']:.1f}% |\n")
         
-        avg_reduction = df['reduction_percent'].mean()
-        f.write(f'\n**Average Reduction:** {avg_reduction:.1f}%\n')
+        avg_reduction = df["reduction_percent"].mean()
+        f.write(f"\n**Average Reduction:** {avg_reduction:.1f}%\n")
         
-        total_processed = df['original_length'].sum()
-        f.write(f'**Total Words Processed:** {total_processed}\n')
+        total_processed = df["original_length"].sum()
+        f.write(f"**Total Words Processed:** {total_processed}\n")
     
 except Exception as e:
-    print(f'Error generating report: {e}')
+    print(f"Error generating report: {e}")
     # Создаем минимальный отчет в случае ошибки
-    with open('DAILY_REPORT.md', 'w') as f:
-        f.write('# Daily Summary Report\n\n')
-        f.write(f'Generated: {datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")}\n\n')
-        f.write('Report generation failed. Check workflow logs for details.\n')
-        "
+    with open("DAILY_REPORT.md", "w") as f:
+        f.write("# Daily Summary Report\n\n")
+        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write("Report generation failed. Check workflow logs for details.\n")
+        '
     
     - name: Commit and push report
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
