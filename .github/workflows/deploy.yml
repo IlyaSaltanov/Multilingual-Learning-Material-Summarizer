@@ -1,58 +1,27 @@
-name: Deploy to Production
+name: Deploy
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: 'Environment'
         required: true
         default: 'staging'
         type: choice
         options:
-        - staging
-        - production
-      version:
-        description: 'Version tag'
-        required: false
-        default: 'latest'
-        type: string
+          - staging
+          - production
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Deploy information
+    - name: Deploy info
       run: |
         echo "Deploying to ${{ github.event.inputs.environment }}"
-        echo "Version: ${{ github.event.inputs.version }}"
-        echo "Commit: ${{ github.sha }}"
-    
-    - name: Create deployment package
-      run: |
-        mkdir -p deploy
-        cp -r src/ deploy/
-        cp requirements.txt deploy/
-        cp -r templates/ deploy/ 2>/dev/null || echo "No templates found"
-        
-        # Create deployment info
-        echo "# Deployment Information" > deploy/DEPLOYMENT_INFO.md
-        echo "" >> deploy/DEPLOYMENT_INFO.md
-        echo "- Environment: ${{ github.event.inputs.environment }}" >> deploy/DEPLOYMENT_INFO.md
-        echo "- Version: ${{ github.event.inputs.version }}" >> deploy/DEPLOYMENT_INFO.md
-        echo "- Commit: ${{ github.sha }}" >> deploy/DEPLOYMENT_INFO.md
-        echo "- Date: $(date)" >> deploy/DEPLOYMENT_INFO.md
-    
-    - name: Upload deployment artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: deployment-package
-        path: deploy/
+        echo "Branch: ${{ github.ref }}"
+        echo "SHA: ${{ github.sha }}"
