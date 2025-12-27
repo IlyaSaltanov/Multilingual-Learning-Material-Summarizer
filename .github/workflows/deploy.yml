@@ -1,7 +1,6 @@
 name: Deploy to Production
 
 on:
-  # Ручной запуск с параметрами
   workflow_dispatch:
     inputs:
       environment:
@@ -36,7 +35,7 @@ jobs:
         echo "Deploying to ${{ github.event.inputs.environment }}"
         echo "Version: ${{ github.event.inputs.version }}"
         echo "Commit: ${{ github.sha }}"
-        
+    
     - name: Create deployment package
       run: |
         mkdir -p deploy
@@ -45,44 +44,15 @@ jobs:
         cp -r templates/ deploy/ 2>/dev/null || echo "No templates found"
         
         # Create deployment info
-        cat > deploy/DEPLOYMENT_INFO.md << EOF
-        # Deployment Information
-        
-        - Environment: ${{ github.event.inputs.environment }}
-        - Version: ${{ github.event.inputs.version }}
-        - Commit: ${{ github.sha }}
-        - Date: $(date)
-        - Branch: ${{ github.ref }}
-        
-        ## How to run
-        
-        \`\`\`bash
-        cd deploy
-        pip install -r requirements.txt
-        python src/app.py
-        \`\`\`
-        EOF
-        
+        echo "# Deployment Information" > deploy/DEPLOYMENT_INFO.md
+        echo "" >> deploy/DEPLOYMENT_INFO.md
+        echo "- Environment: ${{ github.event.inputs.environment }}" >> deploy/DEPLOYMENT_INFO.md
+        echo "- Version: ${{ github.event.inputs.version }}" >> deploy/DEPLOYMENT_INFO.md
+        echo "- Commit: ${{ github.sha }}" >> deploy/DEPLOYMENT_INFO.md
+        echo "- Date: $(date)" >> deploy/DEPLOYMENT_INFO.md
+    
     - name: Upload deployment artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: deployment-package-${{ github.event.inputs.environment }}
+        name: deployment-package
         path: deploy/
-        
-    - name: Create GitHub Release
-      if: github.event.inputs.environment == 'production'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ github.event.inputs.version }}
-        name: Release v${{ github.event.inputs.version }}
-        body: |
-          Production deployment of Multilingual Summarizer
-          
-          Changes in this release:
-          - Automated deployment from GitHub Actions
-          - Version: ${{ github.event.inputs.version }}
-          - Commit: ${{ github.sha }}
-        draft: false
-        prerelease: false
-        files: |
-          deploy/*
