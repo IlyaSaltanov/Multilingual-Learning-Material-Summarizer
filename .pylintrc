@@ -1,0 +1,16 @@
+[MASTER]
+jobs=0
+ignore=CVS
+
+[MESSAGES CONTROL]
+disable=all
+enable=import-error,undefined-variable,no-member,not-callable,attribute-error
+
+[REPORTS]
+output-format=text
+files-output=no
+reports=no
+evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
+
+[FORMAT]
+max-line-length=127
