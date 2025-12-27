@@ -6,22 +6,24 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route('/')
+
+@app.route("/")
 def home():
     return "Multilingual Summarizer is running!"
 
-@app.route('/health')
+
+@app.route("/health")
 def health():
-    return jsonify({
-        'status': 'healthy',
-        'service': 'Multilingual Summarizer',
-        'version': '1.0'
-    })
+    return jsonify(
+        {"status": "healthy", "service": "Multilingual Summarizer", "version": "1.0"}
+    )
 
-@app.route('/test')
+
+@app.route("/test")
 def test():
-    return jsonify({'message': 'Test endpoint works!'})
+    return jsonify({"message": "Test endpoint works!"})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("🚀 Starting minimal server on port 5001...")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
