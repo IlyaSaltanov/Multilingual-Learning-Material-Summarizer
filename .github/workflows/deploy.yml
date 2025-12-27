@@ -1,0 +1,88 @@
+name: Deploy to Production
+
+on:
+  # Ручной запуск с параметрами
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      version:
+        description: 'Version tag'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Deploy information
+      run: |
+        echo "Deploying to ${{ github.event.inputs.environment }}"
+        echo "Version: ${{ github.event.inputs.version }}"
+        echo "Commit: ${{ github.sha }}"
+        
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy
+        cp -r src/ deploy/
+        cp requirements.txt deploy/
+        cp -r templates/ deploy/ 2>/dev/null || echo "No templates found"
+        
+        # Create deployment info
+        cat > deploy/DEPLOYMENT_INFO.md << EOF
+        # Deployment Information
+        
+        - Environment: ${{ github.event.inputs.environment }}
+        - Version: ${{ github.event.inputs.version }}
+        - Commit: ${{ github.sha }}
+        - Date: $(date)
+        - Branch: ${{ github.ref }}
+        
+        ## How to run
+        
+        \`\`\`bash
+        cd deploy
+        pip install -r requirements.txt
+        python src/app.py
+        \`\`\`
+        EOF
+        
+    - name: Upload deployment artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package-${{ github.event.inputs.environment }}
+        path: deploy/
+        
+    - name: Create GitHub Release
+      if: github.event.inputs.environment == 'production'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        name: Release v${{ github.event.inputs.version }}
+        body: |
+          Production deployment of Multilingual Summarizer
+          
+          Changes in this release:
+          - Automated deployment from GitHub Actions
+          - Version: ${{ github.event.inputs.version }}
+          - Commit: ${{ github.sha }}
+        draft: false
+        prerelease: false
+        files: |
+          deploy/*
