@@ -56,7 +56,7 @@
 
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/yourusername/Multilingual-Summarizer.git
+git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
 cd Multilingual-Summarizer
 
 # 2. Создайте виртуальное окружение
@@ -96,7 +96,7 @@ PORT=5001 python3 src/app.py
 
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/yourusername/Multilingual-Summarizer.git
+git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
 cd Multilingual-Summarizer
 
 # Создайте виртуальное окружение с Python 3.11
