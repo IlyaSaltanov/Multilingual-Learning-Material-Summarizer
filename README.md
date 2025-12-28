@@ -741,3 +741,5 @@ multilingual-summarizer/
 [![Star History Chart](https://api.star-history.com/svg?repos=yourusername/Multilingual-Summarizer&type=Date)](https://star-history.com/#yourusername/Multilingual-Summarizer&Date)
 
 </div>
+
+![Tests](https://github.com/YOUR_USERNAME/YOUR_REPO/workflows/Tests/badge.svg)
