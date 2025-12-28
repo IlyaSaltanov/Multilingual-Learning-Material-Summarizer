@@ -1,17 +1,18 @@
 """Минимальный Multilingual Summarizer для MacBook."""
 
 import os
-import re
 import ssl
 from flask import Flask, render_template, request, jsonify
 import nltk
-from langdetect import detect, DetectorFactory
+from langdetect import DetectorFactory
+
 # В начале файла после других импортов:
 # В начале файла
 # В app.py импорты должны быть БЕЗ src:
 from language_detector import detect_language_simple
 from summarizer import summarize_text_extractive
-from utils import simple_tokenize
+
+# from utils import simple_tokenize
 
 # Отключаем SSL проверку для NLTK (решение для Mac)
 try:
@@ -155,7 +156,10 @@ def select_sentences_for_summary(cleaned_sentences, target_sentences):
     # Добавляем средние предложения
     if len(cleaned_sentences) > 3:
         middle_idx = len(cleaned_sentences) // 2
-        if middle_idx < len(cleaned_sentences) and len(result_sentences) < target_sentences:
+        if (
+            middle_idx < len(cleaned_sentences)
+            and len(result_sentences) < target_sentences
+        ):
             result_sentences.append(cleaned_sentences[middle_idx])
 
     # Добавляем последнее предложение если есть место

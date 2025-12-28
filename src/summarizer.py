@@ -9,8 +9,7 @@ class TextSummarizer:
 
     def __init__(self):
         """Инициализирует суммаризатор."""
-        self.supported_languages = {
-            "en": "english", "ru": "russian", "de": "german"}
+        self.supported_languages = {"en": "english", "ru": "russian", "de": "german"}
 
     def extract_sentences(self, text: str, language: str) -> List[str]:
         """Извлекает предложения из текста с учетом языка.
@@ -69,8 +68,7 @@ class TextSummarizer:
             return text
 
         # Вычисляем сколько предложений оставить
-        target_count = max(
-            2, int(len(sentences) * (compression_percent / 100)))
+        target_count = max(2, int(len(sentences) * (compression_percent / 100)))
 
         # Стратегия выбора предложений:
         # 1. Первое предложение (обычно содержит основную идею)
