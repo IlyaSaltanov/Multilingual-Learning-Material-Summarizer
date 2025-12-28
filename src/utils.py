@@ -2,7 +2,6 @@
 Вспомогательные утилиты
 """
 
-
 import nltk
 import ssl
 from typing import List, Tuple
@@ -40,7 +39,7 @@ def setup_nltk():
         # Для русского и немецкого
         try:
             nltk.download("punkt_tab", quiet=True)
-        except:
+        except Exception:
             print("⚠️  punkt_tab недоступен, использую стандартный punkt")
 
         print("✅ NLTK данные установлены")

@@ -2,16 +2,16 @@
 Модуль для суммаризации текста на разных языках
 """
 
-import re
+from typing import List, Dict
 import nltk
-from typing import List, Dict, Optional
 
 
 class TextSummarizer:
     """Класс для извлечения и абстрактивной суммаризации текста"""
 
     def __init__(self):
-        self.supported_languages = {"en": "english", "ru": "russian", "de": "german"}
+        self.supported_languages = {
+            "en": "english", "ru": "russian", "de": "german"}
 
     def extract_sentences(self, text: str, language: str) -> List[str]:
         """
@@ -27,7 +27,7 @@ class TextSummarizer:
         try:
             nltk_lang = self.supported_languages.get(language, "english")
             sentences = nltk.sent_tokenize(text, language=nltk_lang)
-        except:
+        except Exception:
             # Fallback простая токенизация
             sentences = self._simple_tokenize(text)
 
@@ -72,7 +72,8 @@ class TextSummarizer:
             return text
 
         # Вычисляем сколько предложений оставить
-        target_count = max(2, int(len(sentences) * (compression_percent / 100)))
+        target_count = max(
+            2, int(len(sentences) * (compression_percent / 100)))
 
         # Стратегия выбора предложений:
         # 1. Первое предложение (обычно содержит основную идею)
