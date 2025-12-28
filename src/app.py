@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, jsonify
 import nltk
 from langdetect import DetectorFactory
 
+# Импорты из модулей (без src)
 from language_detector import detect_language_simple
 from summarizer import summarize_text_extractive
 
@@ -90,38 +91,6 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 # Поддерживаемые языки
 SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
-
-
-def select_sentences_for_summary(cleaned_sentences, target_sentences):
-    """Вспомогательная функция для выбора предложений для суммаризации."""
-    result_sentences = []
-
-    if not cleaned_sentences:
-        return result_sentences
-
-    # Всегда включаем первое предложение
-    result_sentences.append(cleaned_sentences[0])
-
-    # Добавляем средние предложения
-    if len(cleaned_sentences) > 3:
-        middle_idx = len(cleaned_sentences) // 2
-        if (
-            middle_idx < len(cleaned_sentences)
-            and len(result_sentences) < target_sentences
-        ):
-            result_sentences.append(cleaned_sentences[middle_idx])
-
-    # Добавляем последнее предложение если есть место
-    if len(cleaned_sentences) > 1 and len(result_sentences) < target_sentences:
-        result_sentences.append(cleaned_sentences[-1])
-
-    # Добавляем другие предложения если нужно
-    if len(result_sentences) < target_sentences and len(cleaned_sentences) > 2:
-        for i in range(1, len(cleaned_sentences) - 1):
-            if i != middle_idx and len(result_sentences) < target_sentences:
-                result_sentences.append(cleaned_sentences[i])
-
-    return result_sentences[:target_sentences]
 
 
 @app.route("/")
