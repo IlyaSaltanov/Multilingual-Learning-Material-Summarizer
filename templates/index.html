@@ -1,366 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multilingual Summarizer</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        
-        .app-wrapper {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            min-height: 80vh;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            padding: 40px;
-        }
-        
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .input-section, .output-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            color: #2d3436;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-title i {
-            color: #667eea;
-        }
-        
-        textarea {
-            width: 100%;
-            min-height: 250px;
-            padding: 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            line-height: 1.5;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-            font-family: inherit;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 25px 0;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .control-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
-        }
-        
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s ease;
-        }
-        
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 2;
-        }
-        
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #495057;
-            border: 2px solid #dee2e6;
-            flex: 1;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-        }
-        
-        .result-container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f1f3f5;
-        }
-        
-        .language-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .summary-text {
-            line-height: 1.8;
-            font-size: 1.1rem;
-            color: #2d3436;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f1f3f5;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 600;
-        }
-        
-        .error {
-            background: #fff5f5;
-            color: #e53e3e;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #e53e3e;
-            margin-top: 20px;
-        }
-        
-        .placeholder {
-            text-align: center;
-            padding: 60px 20px;
-            color: #adb5bd;
-        }
-        
-        .placeholder i {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 30px 20px 20px;
-            color: #6c757d;
-            font-size: 0.9rem;
-            border-top: 1px solid #f1f3f5;
-        }
-        
-        .languages {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .language-tag {
-            background: #e9ecef;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #495057;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+
 <body>
     <div class="container">
         <div class="app-wrapper">
             <div class="header">
-                <h1>🌍 Multilingual Summarizer</h1>
-                <p>AI-powered text summarization in English, Russian, and German. Get concise summaries while preserving key information.</p>
+                <div class="header-content">
+                    <h1 id="app-title">Multilingual Summarizer</h1>
+                    <p id="app-subtitle">AI-powered text summarization in English, Russian, and German</p>
+                </div>
+
+                <div class="language-switcher">
+                    <button class="lang-btn" data-lang="en" onclick="changeLanguage('en')">🇺🇸 English</button>
+                    <button class="lang-btn" data-lang="ru" onclick="changeLanguage('ru')">🇷🇺 Русский</button>
+                    <button class="lang-btn" data-lang="de" onclick="changeLanguage('de')">🇩🇪 Deutsch</button>
+                </div>
             </div>
-            
+
             <div class="content">
                 <div class="input-section">
                     <div class="section-title">
-                        <span>📝 Input Text</span>
+                        <span id="input-title">Input Text</span>
                     </div>
-                    
-                    <textarea id="textInput" placeholder="Enter or paste your text here (minimum 50 characters)...">
-Artificial intelligence is transforming many industries around the world. Machine learning algorithms can analyze vast amounts of data and identify patterns that humans might miss. Natural language processing helps computers understand, interpret, and generate human language in a valuable way. These technologies are becoming increasingly important in business, research, and daily life. As AI continues to evolve, it will likely create new opportunities and challenges for society.
-                    </textarea>
-                    
+
+                    <textarea id="textInput"
+                        placeholder="Enter or paste your text here (minimum 50 characters)..."></textarea>
+
                     <div class="controls">
                         <div class="control-group">
-                            <label for="language">🌐 Language</label>
+                            <label for="language" id="language-label">Language</label>
                             <select id="language">
-                                <option value="auto">Auto-detect</option>
+                                <option value="auto" id="auto-option">Auto-detect</option>
                                 <option value="en">English</option>
                                 <option value="ru">Russian</option>
                                 <option value="de">German</option>
                             </select>
                         </div>
-                        
+
                         <div class="control-group">
-                            <label for="compression">📊 Compression Level</label>
+                            <label for="compression" id="compression-label">Compression Level</label>
                             <select id="compression">
                                 <option value="20">20% (Most detailed)</option>
                                 <option value="30" selected>30% (Standard)</option>
@@ -368,235 +53,49 @@ Artificial intelligence is transforming many industries around the world. Machin
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="button-group">
-                        <button class="btn btn-primary" onclick="summarize()">
-                            <span>✨ Generate Summary</span>
+                        <button class="btn btn-primary" onclick="summarize()" id="summarize-btn">
+                            <span>Generate Summary</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="clearText()">
-                            <span>🗑️ Clear</span>
+                        <button class="btn btn-secondary" onclick="clearText()" id="clear-btn">
+                            <span>Clear</span>
                         </button>
                     </div>
-                    
-                    <div class="languages">
-                        <div class="language-tag">🇺🇸 English</div>
-                        <div class="language-tag">🇷🇺 Russian</div>
-                        <div class="language-tag">🇩🇪 German</div>
+
+                    <div style="margin-top: 20px;">
+                        <label id="supported-langs-label">Supported Languages:</label>
+                        <div class="supported-languages">
+                            <div class="language-tag">🇺🇸 <span id="lang-english">English</span></div>
+                            <div class="language-tag">🇷🇺 <span id="lang-russian">Russian</span></div>
+                            <div class="language-tag">🇩🇪 <span id="lang-german">German</span></div>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="output-section">
                     <div class="section-title">
-                        <span>📋 Summary Result</span>
+                        <span id="output-title">Summary Result</span>
                     </div>
-                    
+
                     <div id="resultContainer">
                         <div class="placeholder">
-                            <div>📄</div>
-                            <h3>Your summary will appear here</h3>
-                            <p>Enter text and click "Generate Summary" to see the result</p>
+                            <div class="placeholder-icon">📄</div>
+                            <h3 id="placeholder-title">Your summary will appear here</h3>
+                            <p id="placeholder-text">Enter text and click "Generate Summary" to see the result</p>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer">
-                <p>© 2024 Multilingual Summarizer | Powered by Flask & NLTK</p>
-                <p>Supports texts up to 10,000 characters in English, Russian, and German</p>
+                <p id="footer-text">© 2024 Multilingual Summarizer | Powered by Flask & NLTK</p>
+                <p id="footer-subtext">Supports texts up to 10,000 characters</p>
             </div>
         </div>
     </div>
 
-    <script>
-    // Check if server is reachable
-    async function checkServer() {
-        try {
-            const response = await fetch('/health');
-            if (!response.ok) {
-                showError('Server is not responding. Please make sure the Flask server is running.');
-                return false;
-            }
-            return true;
-        } catch (error) {
-            showError('Cannot connect to server. Please make sure Flask server is running on port 5000.');
-            return false;
-        }
-    }
-    
-    // Main summarize function
-    async function summarize() {
-        console.log('Summarize function called');
-        
-        const text = document.getElementById('textInput').value.trim();
-        const compression = parseInt(document.getElementById('compression').value);
-        const language = document.getElementById('language').value;
-        
-        // Validation
-        if (text.length < 50) {
-            showError('Please enter at least 50 characters of text.');
-            return;
-        }
-        
-        // Check server first
-        const serverOk = await checkServer();
-        if (!serverOk) return;
-        
-        // Show loading state
-        showLoading();
-        
-        try {
-            console.log('Sending request to /summarize...');
-            
-            const response = await fetch('/summarize', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: text,
-                    compression: compression,
-                    language: language
-                })
-            });
-            
-            console.log('Response status:', response.status);
-            
-            const data = await response.json();
-            console.log('Response data:', data);
-            
-            if (!response.ok) {
-                throw new Error(data.error || `Server error: ${response.status}`);
-            }
-            
-            if (data.success) {
-                showResult(data);
-            } else {
-                showError(data.error || 'Unknown error occurred');
-            }
-            
-        } catch (error) {
-            console.error('Error details:', error);
-            showError(`Error: ${error.message}. Please check browser console for details.`);
-        }
-    }
-    
-    // Show loading indicator
-    function showLoading() {
-        const container = document.getElementById('resultContainer');
-        container.innerHTML = `
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <h3>Processing your text...</h3>
-                <p>Analyzing content and generating summary</p>
-            </div>
-        `;
-    }
-    
-    // Show results
-    function showResult(data) {
-        const container = document.getElementById('resultContainer');
-        
-        // Format reduction with arrow
-        const reductionArrow = data.reduction > 0 ? '↓' : '↑';
-        const reductionColor = data.reduction > 0 ? '#10b981' : '#ef4444';
-        
-        container.innerHTML = `
-            <div class="result-container">
-                <div class="result-header">
-                    <h3>📋 Generated Summary</h3>
-                    <div class="language-badge">
-                        ${data.language_name} (${Math.round(data.confidence * 100)}%)
-                    </div>
-                </div>
-                
-                <div class="summary-text">
-                    ${data.summary}
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">${data.original_length}</div>
-                        <div class="stat-label">Original Words</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value">${data.summary_length}</div>
-                        <div class="stat-label">Summary Words</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: ${reductionColor}">
-                            ${reductionArrow} ${data.reduction}%
-                        </div>
-                        <div class="stat-label">Reduction</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value">${data.compression}%</div>
-                        <div class="stat-label">Compression</div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px; text-align: center;">
-                    <button class="btn btn-secondary" onclick="copySummary()">
-                        <span>📋 Copy Summary</span>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Show error message
-    function showError(message) {
-        const container = document.getElementById('resultContainer');
-        container.innerHTML = `
-            <div class="error">
-                <h3>⚠️ Error</h3>
-                <p>${message}</p>
-                <p style="margin-top: 10px; font-size: 0.9rem;">
-                    Tips: Check if the Flask server is running and try again.
-                </p>
-            </div>
-        `;
-    }
-    
-    // Clear text area
-    function clearText() {
-        document.getElementById('textInput').value = '';
-        document.getElementById('resultContainer').innerHTML = `
-            <div class="placeholder">
-                <div>📄</div>
-                <h3>Your summary will appear here</h3>
-                <p>Enter text and click "Generate Summary" to see the result</p>
-            </div>
-        `;
-    }
-    
-    // Copy summary to clipboard
-    function copySummary() {
-        const summaryText = document.querySelector('.summary-text')?.innerText;
-        if (summaryText) {
-            navigator.clipboard.writeText(summaryText).then(() => {
-                alert('Summary copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
-        }
-    }
-    
-    // Test server connection on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        console.log('Page loaded, testing server connection...');
-        checkServer();
-        
-        // Add example texts
-        document.getElementById('textInput').addEventListener('click', function() {
-            if (this.value === this.defaultValue) {
-                this.select();
-            }
-        });
-    });
-    </script> 
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
+
 </html>

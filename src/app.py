@@ -83,11 +83,14 @@ def download_nltk_data():
 # Загружаем данные
 download_nltk_data()
 
-# Указываем явный путь к папке templates (на уровень выше в src/)
+# Указываем явный путь к папке templates и static (на уровень выше в src/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "../templates")
+STATIC_DIR = os.path.join(BASE_DIR, "../static")
 
-app = Flask(__name__, template_folder=TEMPLATE_DIR)
+app = Flask(__name__,
+            template_folder=TEMPLATE_DIR,
+            static_folder=STATIC_DIR)
 
 # Поддерживаемые языки
 SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
@@ -96,6 +99,9 @@ SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
 @app.route("/")
 def home():
     """Главная страница."""
+    print(f"📁 Template path: {TEMPLATE_DIR}")
+    print(f"📁 Static path: {STATIC_DIR}")
+    print(f"📁 Current dir: {os.getcwd()}")
     return render_template("index.html")
 
 
@@ -168,5 +174,6 @@ if __name__ == "__main__":
     print(f"🌐 Откройте http://localhost:{port} в браузере")
     print("📝 Поддерживаемые языки: English, Russian, German")
     print(f"📁 Путь к шаблонам: {TEMPLATE_DIR}")
+    print(f"📁 Путь к статическим файлам: {STATIC_DIR}")
 
     app.run(host="0.0.0.0", port=port, debug=debug)
