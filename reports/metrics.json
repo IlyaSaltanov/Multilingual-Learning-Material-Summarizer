@@ -1,0 +1,37 @@
+{
+  "commit_info": {
+    "commit_sha": "3ae0b99b61586716373e8db003729705d90ab5a5",
+    "run_id": "20554936675",
+    "event": "push",
+    "timestamp": "2025-12-28T14:12:52.458911"
+  },
+  "metrics": [
+    {
+      "language": "en",
+      "detected_language": "en",
+      "detected_confidence": 0.99,
+      "original_length": 100,
+      "summary_length": 30,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    },
+    {
+      "language": "ru",
+      "detected_language": "ru",
+      "detected_confidence": 0.95,
+      "original_length": 150,
+      "summary_length": 45,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    },
+    {
+      "language": "de",
+      "detected_language": "de",
+      "detected_confidence": 0.9,
+      "original_length": 200,
+      "summary_length": 60,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    }
+  ]
+}
