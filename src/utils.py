@@ -2,12 +2,8 @@
 Вспомогательные утилиты
 """
 
-import os
+
 import nltk
-import urllib.request
-import tempfile
-import zipfile
-import shutil
 import ssl
 from typing import List, Tuple
 

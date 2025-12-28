@@ -4,7 +4,7 @@
 
 from langdetect import detect, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
-from typing import Dict, Optional
+from typing import Dict
 
 
 class LanguageDetector:

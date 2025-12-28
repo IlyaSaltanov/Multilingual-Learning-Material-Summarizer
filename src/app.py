@@ -8,7 +8,6 @@ import ssl
 from flask import Flask, render_template, request, jsonify
 import nltk
 from langdetect import detect, DetectorFactory
-from langdetect.lang_detect_exception import LangDetectException
 
 # Отключаем SSL проверку для NLTK (решение для Mac)
 try:
@@ -170,7 +169,8 @@ def summarize_text_extractive(text, language, compression_percent):
         return text
 
     # Выбираем предложения на основе длины
-    target_sentences = max(2, int(len(cleaned_sentences) * (compression_percent / 100)))
+    target_sentences = max(
+        2, int(len(cleaned_sentences) * (compression_percent / 100)))
 
     # Простая эвристика: берем первое, последнее и средние предложения
     result_sentences = []
