@@ -137,6 +137,10 @@ docker run -p 5000:5000 multilingual-summarizer
    - Выберите уровень сжатия
    - Нажмите "Generate Summary"
 
+![header](<Images/Снимок экрана 2025-12-28 в 18.51.28.png>)
+![main](<Images/Снимок экрана 2025-12-28 в 18.51.39.png>)
+![footer](<Images/Снимок экрана 2025-12-28 в 18.51.51.png>)
+
 ### API Endpoints
 
 #### POST `/summarize`
