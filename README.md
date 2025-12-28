@@ -102,8 +102,8 @@ cd Multilingual-Summarizer
 # Создайте виртуальное окружение с Python 3.11
 py -3.11 -m venv venv
 
-# ИЛИ конкретно с 3.11.0
-py -3.11.0 -m venv venv
+            # ИЛИ конкретно с 3.11.0
+            py -3.11.0 -m venv venv
 
 # Активируйте виртуальное окружение
 venv\Scripts\activate
