@@ -2,12 +2,12 @@
 Тесты вспомогательных утилит
 """
 
+from utils import simple_tokenize
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
-from utils import simple_tokenize
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '../src')))
 
 
 class TestUtils:

@@ -2,14 +2,14 @@
 Тесты Flask приложения
 """
 
+from app import app
 import json
-from unittest.mock import patch
 import sys
 import os
+from unittest.mock import patch
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
-from app import app
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '../src')))
 
 
 class TestFlaskApp:
@@ -42,9 +42,9 @@ class TestFlaskApp:
         """Тест успешной суммаризации"""
         mock_detect.return_value = {'language': 'en', 'confidence': 0.9}
         mock_summarize.return_value = 'Summary.'
-        
+
         response = self.client.post('/summarize', json={
             'text': 'Test text ' * 10
         })
-        
+
         assert response.status_code == 200
