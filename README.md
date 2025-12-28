@@ -128,7 +128,7 @@ pip install multilingual-summarizer
 
 ```bash
 # Клонируйте и установите в режиме разработки
-git clone https://github.com/yourusername/Multilingual-Summarizer.git
+git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
 cd Multilingual-Summarizer
 pip install -e .
 ```
