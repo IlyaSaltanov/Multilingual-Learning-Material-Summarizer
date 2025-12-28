@@ -4,7 +4,7 @@ import os
 import ssl
 from flask import Flask, render_template, request, jsonify
 import nltk
-from langdetect import DetectorFactory 
+from langdetect import DetectorFactory
 
 # Импорты из модулей (без src)
 from language_detector import detect_language_simple
