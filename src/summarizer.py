@@ -1,21 +1,19 @@
-"""
-Модуль для суммаризации текста на разных языках
-"""
+"""Модуль для суммаризации текста на разных языках."""
 
 from typing import List, Dict
 import nltk
 
 
 class TextSummarizer:
-    """Класс для извлечения и абстрактивной суммаризации текста"""
+    """Класс для извлечения и абстрактивной суммаризации текста."""
 
     def __init__(self):
+        """Инициализирует суммаризатор."""
         self.supported_languages = {
             "en": "english", "ru": "russian", "de": "german"}
 
     def extract_sentences(self, text: str, language: str) -> List[str]:
-        """
-        Извлекает предложения из текста с учетом языка
+        """Извлекает предложения из текста с учетом языка.
 
         Args:
             text: Входной текст
@@ -35,7 +33,7 @@ class TextSummarizer:
         return [s for s in sentences if len(s.split()) > 3]
 
     def _simple_tokenize(self, text: str) -> List[str]:
-        """Простая токенизация если NLTK не работает"""
+        """Простая токенизация если NLTK не работает."""
         sentences = []
         current = []
 
@@ -55,8 +53,7 @@ class TextSummarizer:
     def summarize_extractive(
         self, text: str, language: str = "en", compression_percent: int = 30
     ) -> str:
-        """
-        Извлекающая суммаризация текста
+        """Извлекающая суммаризация текста.
 
         Args:
             text: Входной текст
@@ -113,8 +110,7 @@ class TextSummarizer:
     def calculate_statistics(
         self, original_text: str, summary_text: str
     ) -> Dict[str, any]:
-        """
-        Вычисляет статистику суммаризации
+        """Вычисляет статистику суммаризации.
 
         Returns:
             Словарь со статистикой
@@ -139,6 +135,6 @@ class TextSummarizer:
 def summarize_text_extractive(
     text: str, language: str, compression_percent: int
 ) -> str:
-    """Функция-обертка для обратной совместимости"""
+    """Функция-обертка для обратной совместимости."""
     summarizer = TextSummarizer()
     return summarizer.summarize_extractive(text, language, compression_percent)

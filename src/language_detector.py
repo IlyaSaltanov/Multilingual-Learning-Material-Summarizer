@@ -1,6 +1,4 @@
-"""
-Модуль для определения языка текста
-"""
+"""Модуль для определения языка текста."""
 
 from langdetect import detect, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
@@ -8,16 +6,16 @@ from typing import Dict
 
 
 class LanguageDetector:
-    """Класс для определения языка текста"""
+    """Класс для определения языка текста."""
 
     def __init__(self):
+        """Инициализирует детектор языка."""
         # Для консистентности результатов
         DetectorFactory.seed = 42
         self.supported_languages = ["en", "ru", "de"]
 
     def detect_language(self, text: str) -> Dict[str, any]:
-        """
-        Определяет язык текста
+        """Определяет язык текста.
 
         Args:
             text: Входной текст (минимум 20 символов)
@@ -49,7 +47,7 @@ class LanguageDetector:
             return self._fallback_detection(text)
 
     def _fallback_detection(self, text: str) -> Dict[str, any]:
-        """Резервный метод определения языка по символам"""
+        """Резервный метод определения языка по символам."""
         text_lower = text.lower()
 
         # Русские символы
@@ -78,14 +76,14 @@ class LanguageDetector:
             return {"language": "en", "confidence": 0.5, "method": "default"}
 
     def get_language_name(self, code: str) -> str:
-        """Возвращает название языка по коду"""
+        """Возвращает название языка по коду."""
         names = {"en": "English", "ru": "Russian", "de": "German"}
         return names.get(code, "Unknown")
 
 
 # Функции для обратной совместимости
 def detect_language_simple(text: str) -> Dict[str, any]:
-    """Простая функция для обратной совместимости"""
+    """Простая функция для обратной совместимости."""
     detector = LanguageDetector()
     result = detector.detect_language(text)
     return {"language": result["language"], "confidence": result["confidence"]}

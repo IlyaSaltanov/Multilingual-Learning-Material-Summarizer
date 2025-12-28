@@ -1,6 +1,4 @@
-"""
-Минимальный Multilingual Summarizer для MacBook
-"""
+"""Минимальный Multilingual Summarizer для MacBook."""
 
 import os
 import re
@@ -21,8 +19,8 @@ else:
 DetectorFactory.seed = 42
 
 
-# Скачиваем NLTK данные при первом запуске (с SSL bypass)
 def download_nltk_data():
+    """Скачиваем NLTK данные при первом запуске (с SSL bypass)."""
     try:
         nltk.data.find("tokenizers/punkt")
         print("✅ NLTK данные уже загружены")
@@ -92,9 +90,8 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR)
 SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
 
 
-# Fallback токенизатор если NLTK не работает
 def simple_tokenize(text):
-    """Простая токенизация если NLTK не работает"""
+    """Простая токенизация если NLTK не работает."""
     # Разделяем по точкам, восклицательным и вопросительным знакам
     sentences = []
     current_sentence = []
@@ -112,7 +109,7 @@ def simple_tokenize(text):
 
 
 def detect_language_simple(text):
-    """Простое определение языка"""
+    """Простое определение языка."""
     if len(text.strip()) < 20:
         return {"language": "en", "confidence": 0.5}
 
@@ -140,7 +137,7 @@ def detect_language_simple(text):
 
 
 def select_sentences_for_summary(cleaned_sentences, target_sentences):
-    """Вспомогательная функция для выбора предложений для суммаризации"""
+    """Вспомогательная функция для выбора предложений для суммаризации."""
     result_sentences = []
 
     if not cleaned_sentences:
@@ -169,7 +166,7 @@ def select_sentences_for_summary(cleaned_sentences, target_sentences):
 
 
 def summarize_text_extractive(text, language, compression_percent):
-    """Простой extractive summarizer"""
+    """Простой extractive summarizer."""
     sentences = []
 
     try:
@@ -210,13 +207,13 @@ def summarize_text_extractive(text, language, compression_percent):
 
 @app.route("/")
 def home():
-    """Главная страница"""
+    """Главная страница."""
     return render_template("index.html")
 
 
 @app.route("/summarize", methods=["POST"])
 def summarize():
-    """API endpoint для суммаризации"""
+    """API endpoint для суммаризации."""
     try:
         # Получаем данные
         data = request.get_json()
@@ -271,7 +268,7 @@ def summarize():
 
 @app.route("/health")
 def health():
-    """Health check endpoint"""
+    """Health check endpoint."""
     return jsonify({"status": "healthy", "service": "Multilingual Summarizer"})
 
 

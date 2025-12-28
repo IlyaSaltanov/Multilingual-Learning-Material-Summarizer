@@ -1,6 +1,4 @@
-"""
-Вспомогательные утилиты
-"""
+"""Вспомогательные утилиты."""
 
 import nltk
 import ssl
@@ -8,7 +6,7 @@ from typing import List, Tuple
 
 
 def disable_ssl():
-    """Отключаем SSL проверку"""
+    """Отключаем SSL проверку."""
     try:
         _create_unverified_https_context = ssl._create_unverified_context
     except AttributeError:
@@ -18,7 +16,7 @@ def disable_ssl():
 
 
 def setup_nltk():
-    """Устанавливаем NLTK данные если их нет"""
+    """Устанавливаем NLTK данные если их нет."""
     print("🔧 Настройка NLTK...")
 
     disable_ssl()  # Отключаем SSL для всех операций
@@ -52,7 +50,7 @@ def setup_nltk():
 
 
 def simple_tokenize(text: str) -> List[str]:
-    """Простая токенизация если NLTK не работает"""
+    """Простая токенизация если NLTK не работает."""
     sentences = []
     current = []
 
@@ -73,8 +71,7 @@ def simple_tokenize(text: str) -> List[str]:
 def validate_text_length(
     text: str, min_len: int = 50, max_len: int = 10000
 ) -> Tuple[bool, str]:
-    """
-    Валидация длины текста
+    """Валидация длины текста.
 
     Returns:
         (is_valid, error_message)
@@ -91,7 +88,7 @@ def validate_text_length(
 
 
 def split_into_chunks(text: str, max_chunk_size: int = 5000) -> List[str]:
-    """Разделяет длинный текст на части"""
+    """Разделяет длинный текст на части."""
     words = text.split()
     chunks = []
     current_chunk = []
