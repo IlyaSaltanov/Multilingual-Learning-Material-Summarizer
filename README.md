@@ -6,8 +6,6 @@
 [![CI/CD](https://github.com/yourusername/Multilingual-Summarizer/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/yourusername/Multilingual-Summarizer/actions)
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x400/667eea/ffffff?text=AI+Powered+Multilingual+Summarizer" alt="Multilingual Summarizer Banner" width="800"/>
-  
   **✨ Интеллектуальный инструмент для суммаризации учебных материалов на нескольких языках ✨**
 </div>
 
@@ -74,7 +72,7 @@ pip install -r requirements.txt
 python src/install_nltk.py
 
 # 5. Запустите приложение
-python src/app.py
+PORT=5001 python3 src/app.py
 ```
 
 ### Для Windows
@@ -135,17 +133,7 @@ docker run -p 5000:5000 multilingual-summarizer
 
 ### Веб-интерфейс
 
-1. Запустите приложение:
-   ```bash
-   python src/app.py
-   ```
-   
-2. Откройте браузер и перейдите по адресу:
-   ```
-   http://localhost:5000
-   ```
-
-3. Используйте интерфейс:
+1. Используйте интерфейс:
    - Введите текст в поле ввода
    - Выберите язык или оставьте "Auto-detect"
    - Выберите уровень сжатия
@@ -331,38 +319,273 @@ jobs:
         uses: codecov/codecov-action@v3
 ```
 
-### Продвинутый Workflow: Auto-Deploy to Render
+### Продвинутый Workflow: Auto-Deploy to Render. Данный Workflow используется в настоящий момент.
 
 ```yaml
-name: Auto-Deploy to Render
+name: CI/CD Pipeline
+
 on:
   push:
-    branches: [main]
+    branches: [main, master]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
+    inputs:
+      run_extensive_tests:
+        description: 'Run extensive tests'
+        required: false
+        default: false
+        type: boolean
+      generate_report:
+        description: 'Generate test report'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    - cron: '0 8 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
-  deploy:
+  quality-check:
+    name: Code Quality Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Deploy to Render
-        run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
-      
-      - name: Run Post-Deployment Tests
-        run: |
-          sleep 30  # Wait for deployment
-          curl -f ${{ secrets.PRODUCTION_URL }}/health || exit 1
-          echo "✅ Deployment successful!"
-      
-      - name: Send Discord Notification
-        uses: appleboy/discord-action@master
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          args: "🚀 New deployment completed! Application is live at ${{ secrets.PRODUCTION_URL }}"
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black pylint pycodestyle pydocstyle pylama pyflakes
+
+      - name: Check code formatting with Black
+        run: |
+          if [ -d "src" ]; then
+            echo "📝 Checking code formatting with Black..."
+            black --check src/ tests/ || echo "⚠️ Code formatting issues found (non-critical)"
+          fi
+
+      - name: Lint with flake8
+        run: |
+          if [ -d "src" ]; then
+            echo "🔍 Running flake8 linting..."
+            # stop the build if there are Python syntax errors or undefined names
+            flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+            # exit-zero treats all errors as warnings
+            flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          fi
+
+      - name: Check PEP8 compliance with pycodestyle
+        run: |
+          echo "📐 Checking PEP8 compliance with pycodestyle..."
+          if [ -d "src" ]; then
+            echo "Checking src/ directory..."
+            pycodestyle --max-line-length=127 --ignore=E501,W503 src/ || echo "⚠️ PEP8 issues found in src/"
+          fi
+          if [ -d "tests" ]; then
+            echo "Checking tests/ directory..."
+            pycodestyle --max-line-length=127 --ignore=E501,W503 tests/ || echo "⚠️ PEP8 issues found in tests/"
+          fi
+
+      - name: Check docstring style with pydocstyle
+        run: |
+          echo "📄 Checking docstring style with pydocstyle..."
+          if [ -d "src" ]; then
+            pydocstyle --convention=google src/ || echo "⚠️ Docstring style issues found (non-critical)"
+          fi
+
+      - name: Comprehensive linting with pylama
+        run: |
+          echo "🔬 Running comprehensive linting with pylama..."
+          if [ -d "src" ]; then
+            pylama src/ -l pycodestyle,pyflakes,mccabe --max-line-length=127 || echo "⚠️ Pylama found issues (non-critical)"
+          fi
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Сначала устанавливаем все зависимости из requirements.txt
+          if [ -f requirements.txt ]; then 
+            pip install -r requirements.txt; 
+          else
+            # Если нет requirements.txt, устанавливаем основные зависимости
+            pip install flask nltk langdetect pytest pytest-cov
+          fi
+
+      - name: Run basic tests
+        env:
+          # ВАЖНО: Добавляем src в PYTHONPATH, чтобы тесты видели код
+          PYTHONPATH: ${{ github.workspace }}/src:${{ github.workspace }}
+        run: |
+          echo "🧪 Running tests..."
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          echo "Python path: $PYTHONPATH"
+          python -m pytest tests/ -v --tb=short
+
+      - name: Run tests with coverage
+        if: ${{ github.event.inputs.run_extensive_tests == 'true' || github.event_name == 'schedule' }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src:${{ github.workspace }}
+        run: |
+          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event.inputs.run_extensive_tests == 'true' || github.event_name == 'schedule' }}
+        with:
+          name: coverage-report
+          path: |
+            htmlcov/
+            coverage.xml
+
+  generate-report:
+    name: Generate Daily Report
+    runs-on: ubuntu-latest
+    needs: [quality-check, test]
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.generate_report == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas
+
+      - name: Generate daily statistics
+        run: |
+          python -c "
+          from datetime import datetime
+          import pandas as pd
+          
+          results = [{
+              'language': 'en',
+              'detected_language': 'en',
+              'detected_confidence': 0.99,
+              'original_length': 100,
+              'summary_length': 30,
+              'reduction_percent': 70.0,
+              'timestamp': datetime.now().isoformat()
+          }]
+          
+          df = pd.DataFrame(results)
+          df.to_csv('daily_report.csv', index=False)
+          
+          with open('DAILY_REPORT.md', 'w') as f:
+              f.write('# 📈 Daily Summary Report\n\n')
+              f.write(f'Generated: {datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")}\n\n')
+              f.write('## 📋 Sample Metrics\n\n')
+              f.write('| Language | Detected | Confidence | Original | Summary | Reduction |\n')
+              f.write('|----------|----------|------------|----------|---------|-----------|\n')
+              for _, row in df.iterrows():
+                  f.write(f'| {row[\"language\"]} | {row[\"detected_language\"]} | {row[\"detected_confidence\"]:.2f} | ')
+                  f.write(f'{row[\"original_length\"]} | {row[\"summary_length\"]} | {row[\"reduction_percent\"]:.1f}% |\n')
+              
+              f.write(f'\n**📊 Summary:**\n')
+              f.write(f'- CI/CD pipeline is working\n')
+          "
+
+      - name: Commit and push report
+        # Работает только если есть права на запись и ветка не защищена правилами (branch protection rules)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add daily_report.csv DAILY_REPORT.md
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Update daily report $(date +%Y-%m-d)"
+            git push
+          fi
+
+  deploy-docs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: [quality-check, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs mkdocs-material
+
+      - name: Generate documentation content
+        run: |
+          mkdir -p docs
+          echo "site_name: Multilingual Summarizer" > mkdocs.yml
+          echo "theme:" >> mkdocs.yml
+          echo "  name: material" >> mkdocs.yml
+          
+          echo "# Multilingual Summarizer" > docs/index.md
+          echo "AI-powered text summarization tool." >> docs/index.md
+
+      - name: Build and Deploy
+        run: |
+          mkdocs build
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+
+  notify:
+    name: Notify Status
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [quality-check, test, generate-report, deploy-docs]
+    steps:
+      - name: Workflow status summary
+        run: |
+          echo "🚀 CI/CD Pipeline Status Summary"
+          echo "Quality Check: ${{ needs.quality-check.result }}"
+          echo "Tests: ${{ needs.test.result }}"
+          if [ "${{ needs.quality-check.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ]; then
+            echo "✅ Pipeline successful."
+          else
+            echo "⚠️ Pipeline failed or has warnings."
+          fi
 ```
 
 ### Дополнительные CI/CD техники
@@ -466,30 +689,9 @@ multilingual-summarizer/
 - Пишите **тесты** для новой функциональности
 - Используйте **осмысленные имена переменных**
 
-## 📄 Лицензия
-
-Этот проект распространяется под лицензией MIT. Подробности в файле [LICENSE](LICENSE).
-
-```
-MIT License
-
-Copyright (c) 2024 Multilingual Summarizer
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
-
 ## 👥 Авторы
 
-- **Ваше Имя** – *Разработчик* – [yourusername](https://github.com/yourusername)
-- **Иван Иванов** – *Консультант по NLP* – [ivanov](https://github.com/ivanov)
+- **Салтанов Илья** – *Архитектор проекта* – [IlyaSaltanov](https://github.com/IlyaSaltanov)
 
 ### Благодарности
 
