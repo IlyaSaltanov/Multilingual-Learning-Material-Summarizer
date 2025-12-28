@@ -3,7 +3,6 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-green.svg)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI/CD](https://github.com/yourusername/Multilingual-Summarizer/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/yourusername/Multilingual-Summarizer/actions)
 
 <div align="center">
   **✨ Интеллектуальный инструмент для суммаризации учебных материалов на нескольких языках ✨**
