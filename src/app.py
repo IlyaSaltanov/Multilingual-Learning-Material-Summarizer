@@ -120,7 +120,7 @@ def detect_language_simple(text):
         detected = detect(text)
         if detected in SUPPORTED_LANGUAGES:
             return {"language": detected, "confidence": 0.9}
-    except:
+    except Exception:
         pass
 
     # Простая проверка по символам
@@ -139,6 +139,35 @@ def detect_language_simple(text):
     return {"language": "en", "confidence": 0.5}
 
 
+def select_sentences_for_summary(cleaned_sentences, target_sentences):
+    """Вспомогательная функция для выбора предложений для суммаризации"""
+    result_sentences = []
+
+    if not cleaned_sentences:
+        return result_sentences
+
+    # Всегда включаем первое предложение
+    result_sentences.append(cleaned_sentences[0])
+
+    # Добавляем средние предложения
+    if len(cleaned_sentences) > 3:
+        middle_idx = len(cleaned_sentences) // 2
+        if middle_idx < len(cleaned_sentences) and len(result_sentences) < target_sentences:
+            result_sentences.append(cleaned_sentences[middle_idx])
+
+    # Добавляем последнее предложение если есть место
+    if len(cleaned_sentences) > 1 and len(result_sentences) < target_sentences:
+        result_sentences.append(cleaned_sentences[-1])
+
+    # Добавляем другие предложения если нужно
+    if len(result_sentences) < target_sentences and len(cleaned_sentences) > 2:
+        for i in range(1, len(cleaned_sentences) - 1):
+            if i != middle_idx and len(result_sentences) < target_sentences:
+                result_sentences.append(cleaned_sentences[i])
+
+    return result_sentences[:target_sentences]
+
+
 def summarize_text_extractive(text, language, compression_percent):
     """Простой extractive summarizer"""
     sentences = []
@@ -151,7 +180,7 @@ def summarize_text_extractive(text, language, compression_percent):
             sentences = nltk.sent_tokenize(text, language="german")
         else:
             sentences = nltk.sent_tokenize(text, language="english")
-    except:
+    except Exception:
         # Fallback на простую токенизацию
         sentences = simple_tokenize(text)
 
@@ -172,32 +201,11 @@ def summarize_text_extractive(text, language, compression_percent):
     target_sentences = max(
         2, int(len(cleaned_sentences) * (compression_percent / 100)))
 
-    # Простая эвристика: берем первое, последнее и средние предложения
-    result_sentences = []
+    # Получаем предложения для суммаризации
+    result_sentences = select_sentences_for_summary(
+        cleaned_sentences, target_sentences)
 
-    # Всегда включаем первое предложение
-    result_sentences.append(cleaned_sentences[0])
-
-    # Добавляем средние предложения
-    if len(cleaned_sentences) > 3:
-        middle_idx = len(cleaned_sentences) // 2
-        if (
-            middle_idx < len(cleaned_sentences)
-            and len(result_sentences) < target_sentences
-        ):
-            result_sentences.append(cleaned_sentences[middle_idx])
-
-    # Добавляем последнее предложение если есть место
-    if len(cleaned_sentences) > 1 and len(result_sentences) < target_sentences:
-        result_sentences.append(cleaned_sentences[-1])
-
-    # Добавляем другие предложения если нужно
-    if len(result_sentences) < target_sentences and len(cleaned_sentences) > 2:
-        for i in range(1, len(cleaned_sentences) - 1):
-            if i != middle_idx and len(result_sentences) < target_sentences:
-                result_sentences.append(cleaned_sentences[i])
-
-    return " ".join(result_sentences[:target_sentences])
+    return " ".join(result_sentences)
 
 
 @app.route("/")
