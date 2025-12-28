@@ -57,7 +57,8 @@
 ```bash
 # 1. Клонируйте репозиторий
 git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
-cd Multilingual-Summarizer
+
+cd ./Multilingual-Learning-Material-Summarizer # необходимо указать путь до проекта, чтобы перейти в него
 
 # 2. Создайте виртуальное окружение
 python3 -m venv venv
@@ -97,7 +98,8 @@ PORT=5001 python3 src/app.py
 ```bash
 # 1. Клонируйте репозиторий
 git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
-cd Multilingual-Summarizer
+
+cd ./Multilingual-Learning-Material-Summarizer # необходимо указать путь до проекта, чтобы перейти в него
 
 # Создайте виртуальное окружение с Python 3.11
 py -3.11 -m venv venv
@@ -129,7 +131,9 @@ pip install multilingual-summarizer
 ```bash
 # Клонируйте и установите в режиме разработки
 git clone https://github.com/IlyaSaltanov/Multilingual-Learning-Material-Summarizer
-cd Multilingual-Summarizer
+
+cd ./Multilingual-Learning-Material-Summarizer # необходимо указать путь до проекта, чтобы перейти в него
+
 pip install -e .
 ```
 
