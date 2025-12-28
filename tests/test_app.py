@@ -152,5 +152,5 @@ class TestFlaskApp:
         assert response.status_code in [200, 400]
 
 
-if __name__ == '__main__':
-    pytest.main()
+# if __name__ == '__main__':
+#     pytest.main()
