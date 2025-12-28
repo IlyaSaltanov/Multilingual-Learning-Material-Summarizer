@@ -76,7 +76,7 @@ PORT=5001 python3 src/app.py
 ### Для Windows
 
 #### 📋 Предварительные требования
-
+```
 1. **Скачайте Python 3.11.0** с официального сайта:
    - Перейдите на [python.org/downloads/release](https://www.python.org/downloads/windows/)
    - Выберите **Windows installer (64-bit)** (если у вас 64-битная система)
@@ -89,6 +89,7 @@ PORT=5001 python3 src/app.py
      ✅ **Add Python 3.11 to PATH** (самое важное!)
      ✅ **Install pip**
      ✅ **Install for all users**
+```
 
 #### 🚀 Установка проекта
 
