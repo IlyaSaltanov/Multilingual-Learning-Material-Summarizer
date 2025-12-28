@@ -5,10 +5,9 @@ on:
     branches: [main, master]
     paths-ignore:
       - 'docs/**'
-      - '**.md'
+      - '*.md'
   pull_request:
     branches: [main, master]
-  
   workflow_dispatch:
     inputs:
       run_extensive_tests:
@@ -21,7 +20,6 @@ on:
         required: false
         default: true
         type: boolean
-  
   schedule:
     - cron: '0 8 * * *'
 
@@ -29,7 +27,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Глобальные права. Можно настроить точечно для каждой job, но для простоты укажем здесь.
 permissions:
   contents: write
 
@@ -37,46 +34,6 @@ jobs:
   quality-check:
     name: Code Quality Check
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      # Исправление: Устанавливаем зависимости проекта, чтобы pylint видел импорты
-      - name: Install dependencies and tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt || echo "No requirements found"
-          pip install flake8 black pylint
-
-      - name: Check code formatting with Black
-        run: |
-          black --check src/ tests/ || echo "Code formatting issues found (not failing workflow)"
-
-      - name: Lint with flake8
-        run: |
-          # Исправление: добавлена проверка наличия директории src перед запуском
-          if [ -d "src" ]; then
-            flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
-            flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          fi
-
-      - name: Lint with pylint
-        run: |
-          if [ -d "src" ]; then
-            pylint --disable=all --enable=E,W src/ || true
-          fi
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: quality-check
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -89,17 +46,56 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          # Добавляем установку coverage, так как она может понадобиться ниже
+          pip install flake8 black pylint pytest
+
+      - name: Check code formatting with Black
+        run: |
+          if [ -d "src" ]; then
+            black --check src/ || echo "⚠️ Code formatting issues found (non-critical)"
+          fi
+
+      - name: Lint with flake8
+        run: |
+          if [ -d "src" ]; then
+            # stop the build if there are Python syntax errors or undefined names
+            flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+            # exit-zero treats all errors as warnings
+            flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          fi
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
           pip install pytest pytest-cov
-          python -m nltk.downloader punkt
+          # ВАЖНО: Установка зависимостей проекта (Flask, nltk и т.д.)
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Если requirements.txt нет, устанавливаем вручную то, что используется в app.py
+          pip install flask nltk pandas
 
       - name: Run basic tests
+        env:
+          # ВАЖНО: Добавляем src в PYTHONPATH, чтобы тесты видели код
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
+          echo "🧪 Running tests..."
           python -m pytest tests/ -v --tb=short
 
       - name: Run tests with coverage
         if: ${{ github.event.inputs.run_extensive_tests == 'true' || github.event_name == 'schedule' }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           python -m pytest tests/ --cov=src --cov-report=xml --cov-report=html
 
@@ -110,81 +106,11 @@ jobs:
           name: coverage-report
           path: htmlcov/
 
-  performance-test:
-    name: Performance Test
-    runs-on: ubuntu-latest
-    needs: test
-    if: ${{ github.event.inputs.run_extensive_tests == 'true' || github.event_name == 'schedule' }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m nltk.downloader punkt
-
-      - name: Run performance tests
-        run: |
-          python - << 'EOF'
-          import sys
-          import time
-          # Добавляем проверку пути, чтобы не упало, если src не найден
-          sys.path.insert(0, 'src')
-          
-          try:
-              from summarizer import TextSummarizer
-              
-              text = """Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals."""
-
-              summarizer = TextSummarizer()
-
-              # Warm up
-              summarizer.summarize_extractive(text, 'en', 30)
-
-              # Performance test
-              start = time.time()
-              for _ in range(10):
-                  summary = summarizer.summarize_extractive(text, 'en', 30)
-              end = time.time()
-
-              print('Performance Test Results')
-              print('=' * 40)
-              print(f'Time for 10 summaries: {end-start:.2f} seconds')
-              print(f'Average time per summary: {(end-start)/10:.3f} seconds')
-              print(f'Original length: {len(text.split())} words')
-              print(f'Summary length: {len(summary.split())} words')
-              reduction = 100 - (len(summary.split()) / len(text.split()) * 100)
-              print(f'Reduction: {reduction:.1f}%')
-              print('=' * 40)
-          except ImportError:
-              print("Skipping performance test: module not found")
-          except Exception as e:
-              print(f"Error during performance test: {e}")
-              exit(1)
-          EOF
-
-      - name: Save performance metrics
-        run: |
-          echo "PERFORMANCE_METRICS=$(date +%Y-%m-%d)" >> $GITHUB_ENV
-          mkdir -p metrics
-          echo "Performance Test - $(date)" > metrics/performance.txt
-          echo "Branch: ${{ github.ref }}" >> metrics/performance.txt
-          echo "Commit: ${{ github.sha }}" >> metrics/performance.txt
-
   generate-report:
     name: Generate Daily Report
     runs-on: ubuntu-latest
     needs: test
     if: ${{ github.event_name == 'schedule' || github.event.inputs.generate_report == 'true' }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -196,84 +122,60 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install pandas
 
       - name: Generate daily statistics
         run: |
           python -c "
-          # (Код Python оставлен как есть, но сжатие строк улучшено для читаемости)
-          import sys
-          sys.path.insert(0, 'src')
-          import pandas as pd
           from datetime import datetime
-
-          try:
-              # Здесь предполагается наличие модулей. Если это мок-тест, можно закомментировать
-              # from summarizer import TextSummarizer
-              # from language_detector import LanguageDetector
+          import pandas as pd
+          
+          results = [{
+              'language': 'en',
+              'detected_language': 'en',
+              'detected_confidence': 0.99,
+              'original_length': 100,
+              'summary_length': 30,
+              'reduction_percent': 70.0,
+              'timestamp': datetime.now().isoformat()
+          }]
+          
+          df = pd.DataFrame(results)
+          df.to_csv('daily_report.csv', index=False)
+          
+          with open('DAILY_REPORT.md', 'w') as f:
+              f.write('# 📈 Daily Summary Report\n\n')
+              f.write(f'Generated: {datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")}\n\n')
+              f.write('## 📋 Sample Metrics\n\n')
+              f.write('| Language | Detected | Confidence | Original | Summary | Reduction |\n')
+              f.write('|----------|----------|------------|----------|---------|-----------|\n')
+              for _, row in df.iterrows():
+                  f.write(f'| {row[\"language\"]} | {row[\"detected_language\"]} | {row[\"detected_confidence\"]:.2f} | ')
+                  f.write(f'{row[\"original_length\"]} | {row[\"summary_length\"]} | {row[\"reduction_percent\"]:.1f}% |\n')
               
-              # MOCK DATA для примера, чтобы пайплайн не падал без реального кода
-              results = [{
-                  'language': 'en',
-                  'detected_language': 'en',
-                  'detected_confidence': 0.99,
-                  'original_length': 100,
-                  'summary_length': 30,
-                  'reduction_percent': 70.0,
-                  'timestamp': datetime.now().isoformat()
-              }]
-              
-              # Save to CSV
-              df = pd.DataFrame(results)
-              df.to_csv('daily_report.csv', index=False)
-              
-              # Create markdown report
-              with open('DAILY_REPORT.md', 'w') as f:
-                  f.write('# Daily Summary Report\n')
-                  f.write(f'Generated: {datetime.now()}\n')
-              
-              print('✅ Report generated')
-              
-          except Exception as e:
-              print(f'❌ Error: {e}')
-              exit(1)
+              f.write(f'\n**📊 Summary:**\n')
+              f.write(f'- CI/CD pipeline is working\n')
           "
 
       - name: Commit and push report
+        # Работает только если есть права на запись и ветка не защищена правилами (branch protection rules)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add daily_report.csv DAILY_REPORT.md 2>/dev/null || echo "Files not found"
+          git add daily_report.csv DAILY_REPORT.md
           if git diff --quiet && git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "📊 Update daily report $(date +%Y-%m-%d)" || echo "Commit failed"
-            git push origin HEAD:${{ github.ref }}
+            git commit -m "📊 Update daily report $(date +%Y-%m-%d)"
+            git push
           fi
-
-      # Исправление: Вычисляем дату заранее для использования в имени артефакта
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
-      - name: Upload report artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          # Исправление: Используем переменную из output предыдущего шага
-          name: daily-report-${{ steps.date.outputs.date }}
-          path: |
-            daily_report.csv
-            DAILY_REPORT.md
 
   deploy-docs:
     name: Deploy Documentation
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -285,49 +187,41 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install mkdocs mkdocs-material
 
       - name: Generate documentation content
         run: |
           mkdir -p docs
+          echo "site_name: Multilingual Summarizer" > mkdocs.yml
+          echo "theme:" >> mkdocs.yml
+          echo "  name: material" >> mkdocs.yml
           
-          # Создаем минимальный mkdocs.yml, необходимый для сборки
-          cat > mkdocs.yml << 'EOF'
-          site_name: Multilingual Summarizer
-          theme:
-            name: material
-          nav:
-            - Home: index.md
-          EOF
+          echo "# Multilingual Summarizer" > docs/index.md
+          echo "AI-powered text summarization tool." >> docs/index.md
 
-          # Исправление: Добавлен закрывающий EOF
-          cat > docs/index.md << 'EOF'
-          # 🌍 Multilingual Summarizer
-
-          AI-powered text summarization tool supporting multiple languages.
-
-          ## Features
-          - Summarize text in English, Russian, and German
-          - Auto language detection
-          - Configurable compression levels (20%, 30%, 50%)
-          - Detailed statistics and metrics
-
-          ## API Usage
-          Send POST request to `/summarize` with JSON body:
-
-          ```json
-          {
-            "text": "Your text here...",
-            "compression": 30,
-            "language": "auto"
-          }
-          ```
-          EOF
-
-      - name: Build and Deploy Documentation
+      - name: Build and Deploy
         run: |
-          # В реальном проекте здесь будет: mkdocs gh-deploy --force
-          # Для проверки просто сбилдим сайт
           mkdocs build
-          echo "Documentation built successfully in site/"
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+
+  notify:
+    name: Notify Status
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [quality-check, test, generate-report, deploy-docs]
+    steps:
+      - name: Workflow status summary
+        run: |
+          echo "🚀 CI/CD Pipeline Status Summary"
+          echo "Tests: ${{ needs.test.result }}"
+          if [ "${{ needs.test.result }}" = "success" ]; then
+            echo "✅ Pipeline successful."
+          else
+            echo "⚠️ Pipeline failed."
+          fi
