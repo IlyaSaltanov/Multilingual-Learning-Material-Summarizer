@@ -6,13 +6,8 @@ from flask import Flask, render_template, request, jsonify
 import nltk
 from langdetect import DetectorFactory
 
-# В начале файла после других импортов:
-# В начале файла
-# В app.py импорты должны быть БЕЗ src:
 from language_detector import detect_language_simple
 from summarizer import summarize_text_extractive
-
-# from utils import simple_tokenize
 
 # Отключаем SSL проверку для NLTK (решение для Mac)
 try:
@@ -97,52 +92,6 @@ app = Flask(__name__, template_folder=TEMPLATE_DIR)
 SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
 
 
-# def simple_tokenize(text):
-#     """Простая токенизация если NLTK не работает."""
-#     # Разделяем по точкам, восклицательным и вопросительным знакам
-#     sentences = []
-#     current_sentence = []
-
-#     for char in text:
-#         current_sentence.append(char)
-#         if char in ".!?。！？":
-#             sentences.append("".join(current_sentence).strip())
-#             current_sentence = []
-
-#     if current_sentence:
-#         sentences.append("".join(current_sentence).strip())
-
-#     return [s for s in sentences if s]
-
-
-# def detect_language_simple(text):
-#     """Простое определение языка."""
-#     if len(text.strip()) < 20:
-#         return {"language": "en", "confidence": 0.5}
-
-#     try:
-#         detected = detect(text)
-#         if detected in SUPPORTED_LANGUAGES:
-#             return {"language": detected, "confidence": 0.9}
-#     except Exception:
-#         pass
-
-#     # Простая проверка по символам
-#     text_lower = text.lower()
-#     ru_chars = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя")
-#     de_chars = set("äöüß")
-
-#     ru_count = sum(1 for c in text_lower[:200] if c in ru_chars)
-#     de_count = sum(1 for c in text_lower[:200] if c in de_chars)
-
-#     if ru_count > 10:
-#         return {"language": "ru", "confidence": min(0.9, ru_count / 100)}
-#     elif de_count > 5:
-#         return {"language": "de", "confidence": min(0.9, de_count / 50)}
-
-#     return {"language": "en", "confidence": 0.5}
-
-
 def select_sentences_for_summary(cleaned_sentences, target_sentences):
     """Вспомогательная функция для выбора предложений для суммаризации."""
     result_sentences = []
@@ -173,46 +122,6 @@ def select_sentences_for_summary(cleaned_sentences, target_sentences):
                 result_sentences.append(cleaned_sentences[i])
 
     return result_sentences[:target_sentences]
-
-
-# def summarize_text_extractive(text, language, compression_percent):
-#     """Простой extractive summarizer."""
-#     sentences = []
-
-#     try:
-#         # Пробуем NLTK токенизацию
-#         if language == "ru":
-#             sentences = nltk.sent_tokenize(text, language="russian")
-#         elif language == "de":
-#             sentences = nltk.sent_tokenize(text, language="german")
-#         else:
-#             sentences = nltk.sent_tokenize(text, language="english")
-#     except Exception:
-#         # Fallback на простую токенизацию
-#         sentences = simple_tokenize(text)
-
-#     if len(sentences) <= 3:
-#         return text
-
-#     # Очищаем предложения
-#     cleaned_sentences = []
-#     for sentence in sentences:
-#         clean_sentence = re.sub(r"\s+", " ", sentence).strip()
-#         if len(clean_sentence.split()) > 3:
-#             cleaned_sentences.append(sentence)
-
-#     if not cleaned_sentences:
-#         return text
-
-#     # Выбираем предложения на основе длины
-#     target_sentences = max(
-#         2, int(len(cleaned_sentences) * (compression_percent / 100)))
-
-#     # Получаем предложения для суммаризации
-#     result_sentences = select_sentences_for_summary(
-#         cleaned_sentences, target_sentences)
-
-#     return " ".join(result_sentences)
 
 
 @app.route("/")
