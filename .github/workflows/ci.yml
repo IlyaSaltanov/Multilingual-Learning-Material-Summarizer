@@ -121,35 +121,35 @@ jobs:
 
       - name: Run performance tests
         run: |
-          python -c "
-import sys
-sys.path.insert(0, 'src')
-from summarizer import TextSummarizer
-import time
+          python - << 'EOF'
+          import sys
+          sys.path.insert(0, 'src')
+          from summarizer import TextSummarizer
+          import time
 
-text = '''Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals.'''
+          text = '''Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. Leading AI textbooks define the field as the study of intelligent agents: any system that perceives its environment and takes actions that maximize its chance of achieving its goals.'''
 
-summarizer = TextSummarizer()
+          summarizer = TextSummarizer()
 
-# Warm up
-summarizer.summarize_extractive(text, 'en', 30)
+          # Warm up
+          summarizer.summarize_extractive(text, 'en', 30)
 
-# Performance test
-start = time.time()
-for _ in range(10):
-    summary = summarizer.summarize_extractive(text, 'en', 30)
-end = time.time()
+          # Performance test
+          start = time.time()
+          for _ in range(10):
+              summary = summarizer.summarize_extractive(text, 'en', 30)
+          end = time.time()
 
-print('🚀 Performance Test Results 🚀')
-print('=' * 40)
-print(f'⏱️  Time for 10 summaries: {end-start:.2f} seconds')
-print(f'📊 Average time per summary: {(end-start)/10:.3f} seconds')
-print(f'📝 Original length: {len(text.split())} words')
-print(f'✂️  Summary length: {len(summary.split())} words')
-reduction = 100 - (len(summary.split()) / len(text.split()) * 100)
-print(f'📉 Reduction: {reduction:.1f}%')
-print('=' * 40)
-"
+          print('Performance Test Results')
+          print('=' * 40)
+          print(f'Time for 10 summaries: {end-start:.2f} seconds')
+          print(f'Average time per summary: {(end-start)/10:.3f} seconds')
+          print(f'Original length: {len(text.split())} words')
+          print(f'Summary length: {len(summary.split())} words')
+          reduction = 100 - (len(summary.split()) / len(text.split()) * 100)
+          print(f'Reduction: {reduction:.1f}%')
+          print('=' * 40)
+          EOF
 
       - name: Save performance metrics
         run: |
