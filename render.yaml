@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: multilingual-summarizer
+    runtime: python
+    plan: free
+    region: frankfurt  # или ближайший к вам
+    branch: main
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PYTHONPATH
+        value: /opt/render/project/src:/opt/render/project
+      - key: NLTK_DATA
+        value: /opt/render/.cache/nltk_data
+    healthCheckPath: /health
+    autoDeploy: true

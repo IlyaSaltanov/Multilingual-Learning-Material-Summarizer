@@ -2,13 +2,77 @@
 
 import os
 import ssl
+import sys
 from flask import Flask, render_template, request, jsonify
 import nltk
 from langdetect import DetectorFactory
 
-# Импорты из модулей (без src)
-from language_detector import detect_language_simple
-from summarizer import summarize_text_extractive
+# 🔧 ВАЖНО: Добавляем пути для корректного импорта
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+# Добавляем родительскую директорию в Python path
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+# Добавляем текущую директорию (src/) в Python path
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+print(f"🔧 Python path настроен:")
+print(f"   - Current dir: {current_dir}")
+print(f"   - Parent dir: {parent_dir}")
+print(f"   - In sys.path: {'src' in ' '.join(sys.path)}")
+
+# 🔧 ИСПРАВЛЕННЫЕ ИМПОРТЫ:
+# Способ 1: Пробуем относительные импорты
+try:
+    from .language_detector import detect_language_simple
+    from .summarizer import summarize_text_extractive
+    print("✅ Успешно импортировали модули через относительные импорты")
+except ImportError as e:
+    print(f"⚠️  Относительные импорты не сработали: {e}")
+
+    # Способ 2: Пробуем абсолютные импорты
+    try:
+        from src.language_detector import detect_language_simple
+        from src.summarizer import summarize_text_extractive
+        print("✅ Успешно импортировали модули через абсолютные импорты")
+    except ImportError as e2:
+        print(f"⚠️  Абсолютные импорты не сработали: {e2}")
+
+        # Способ 3: Прямые импорты (для локальной разработки)
+        try:
+            from language_detector import detect_language_simple
+            from summarizer import summarize_text_extractive
+            print("✅ Успешно импортировали модули напрямую")
+        except ImportError as e3:
+            print(f"❌ Все методы импорта не сработали: {e3}")
+            print("🔄 Проверяю содержимое директории:")
+            print(f"   Файлы в {current_dir}: {os.listdir(current_dir)}")
+
+            # Последняя попытка: динамический импорт
+            import importlib.util
+
+            # Импортируем language_detector
+            ld_path = os.path.join(current_dir, 'language_detector.py')
+            spec = importlib.util.spec_from_file_location(
+                "language_detector", ld_path)
+            ld_module = importlib.util.module_from_spec(spec)
+            sys.modules["language_detector"] = ld_module
+            spec.loader.exec_module(ld_module)
+            detect_language_simple = ld_module.detect_language_simple
+
+            # Импортируем summarizer
+            sum_path = os.path.join(current_dir, 'summarizer.py')
+            spec = importlib.util.spec_from_file_location(
+                "summarizer", sum_path)
+            sum_module = importlib.util.module_from_spec(spec)
+            sys.modules["summarizer"] = sum_module
+            spec.loader.exec_module(sum_module)
+            summarize_text_extractive = sum_module.summarize_text_extractive
+
+            print("✅ Успешно импортировали модули через importlib")
 
 # Отключаем SSL проверку для NLTK (решение для Mac)
 try:
@@ -35,49 +99,7 @@ def download_nltk_data():
             print("✅ NLTK данные успешно загружены")
         except Exception as e:
             print(f"⚠️  Ошибка загрузки NLTK данных: {e}")
-            print("Попробую альтернативный метод...")
-            # Попробуем скачать вручную
-            import urllib.request
-            import tempfile
-            import zipfile
-            import shutil
-
-            # Скачиваем punkt напрямую
-            punkt_url = "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip"
-            temp_dir = tempfile.mkdtemp()
-
-            try:
-                # Скачиваем архив
-                print("Скачиваю punkt напрямую...")
-                urllib.request.urlretrieve(
-                    punkt_url, os.path.join(temp_dir, "punkt.zip")
-                )
-
-                # Распаковываем
-                with zipfile.ZipFile(
-                    os.path.join(temp_dir, "punkt.zip"), "r"
-                ) as zip_ref:
-                    zip_ref.extractall(temp_dir)
-
-                # Копируем в папку nltk_data
-                nltk_data_dir = os.path.expanduser("~/nltk_data")
-                tokenizers_dir = os.path.join(nltk_data_dir, "tokenizers")
-
-                os.makedirs(tokenizers_dir, exist_ok=True)
-
-                # Ищем файлы punkt
-                for root, dirs, files in os.walk(temp_dir):
-                    for file in files:
-                        if "punkt" in file and file.endswith(".pickle"):
-                            src = os.path.join(root, file)
-                            dst = os.path.join(tokenizers_dir, file)
-                            shutil.copy2(src, dst)
-                            print(f"Скопирован: {file}")
-
-                print("✅ NLTK данные установлены вручную")
-            except Exception as e2:
-                print(f"❌ Не удалось установить NLTK данные: {e2}")
-                print("Приложение будет использовать fallback токенизацию")
+            print("Приложение будет использовать fallback токенизацию")
 
 
 # Загружаем данные
@@ -99,9 +121,6 @@ SUPPORTED_LANGUAGES = {"en": "English", "ru": "Russian", "de": "German"}
 @app.route("/")
 def home():
     """Главная страница."""
-    print(f"📁 Template path: {TEMPLATE_DIR}")
-    print(f"📁 Static path: {STATIC_DIR}")
-    print(f"📁 Current dir: {os.getcwd()}")
     return render_template("index.html")
 
 
@@ -163,17 +182,37 @@ def summarize():
 @app.route("/health")
 def health():
     """Health check endpoint."""
-    return jsonify({"status": "healthy", "service": "Multilingual Summarizer"})
+    return jsonify({
+        "status": "healthy",
+        "service": "Multilingual Summarizer",
+        "python_version": sys.version.split()[0]
+    })
+
+
+@app.route("/debug")
+def debug():
+    """Debug endpoint для проверки путей."""
+    return jsonify({
+        "current_dir": os.path.dirname(os.path.abspath(__file__)),
+        "template_dir": TEMPLATE_DIR,
+        "static_dir": STATIC_DIR,
+        "template_exists": os.path.exists(TEMPLATE_DIR),
+        "static_exists": os.path.exists(STATIC_DIR),
+        "sys_path": sys.path,
+        "import_success": "language_detector" in sys.modules and "summarizer" in sys.modules
+    })
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5001))
     debug = os.environ.get("FLASK_ENV") == "development"
 
     print(f"🚀 Запуск Multilingual Summarizer на порту {port}")
     print(f"🌐 Откройте http://localhost:{port} в браузере")
     print("📝 Поддерживаемые языки: English, Russian, German")
-    print(f"📁 Путь к шаблонам: {TEMPLATE_DIR}")
-    print(f"📁 Путь к статическим файлам: {STATIC_DIR}")
+    print(
+        f"📁 Путь к шаблонам: {TEMPLATE_DIR} (существует: {os.path.exists(TEMPLATE_DIR)})")
+    print(
+        f"📁 Путь к статическим файлам: {STATIC_DIR} (существует: {os.path.exists(STATIC_DIR)})")
 
     app.run(host="0.0.0.0", port=port, debug=debug)
