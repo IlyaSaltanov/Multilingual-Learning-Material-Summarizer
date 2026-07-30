@@ -1,0 +1,4 @@
+language,detected_language,detected_confidence,original_length,summary_length,reduction_percent,test_status
+en,en,0.99,100,30,70.0,pass
+ru,ru,0.95,150,45,70.0,pass
+de,de,0.9,200,60,70.0,pass
