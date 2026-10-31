@@ -1,0 +1,37 @@
+{
+  "commit_info": {
+    "commit_sha": "de6e75c0696c1e207f2cd7f24dec4653cdff490a",
+    "run_id": "41209243963",
+    "event": "schedule",
+    "timestamp": "2026-10-31T14:15:39.356449"
+  },
+  "metrics": [
+    {
+      "language": "en",
+      "detected_language": "en",
+      "detected_confidence": 0.99,
+      "original_length": 100,
+      "summary_length": 30,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    },
+    {
+      "language": "ru",
+      "detected_language": "ru",
+      "detected_confidence": 0.95,
+      "original_length": 150,
+      "summary_length": 45,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    },
+    {
+      "language": "de",
+      "detected_language": "de",
+      "detected_confidence": 0.9,
+      "original_length": 200,
+      "summary_length": 60,
+      "reduction_percent": 70.0,
+      "test_status": "pass"
+    }
+  ]
+}
